@@ -1,3 +1,5 @@
+package Const;
+
 public class Const {
     public static final String USER_TABLE = "users";
     public static final String USER_TABLE_FILES = "files";
