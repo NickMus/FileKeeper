@@ -1,4 +1,4 @@
-package Properties;
+package сonst;
 
 public class Configs {
     public static String dbHost = "127.0.0.1";

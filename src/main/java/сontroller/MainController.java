@@ -1,8 +1,8 @@
-package Controllers;
+package сontroller;
 
-import Client.Client;
-import Client.User;
-import Handler.DatabaseHandler;
+import сlient.Client;
+import сlient.User;
+import dao.DatabaseHandler;
 import animation.Shake;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;

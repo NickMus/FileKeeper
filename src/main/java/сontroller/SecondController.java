@@ -1,9 +1,9 @@
-package Controllers;
+package сontroller;
 
-import Client.Client;
-import Const.Const;
-import Handler.DatabaseHandler;
-import Properties.Configs;
+import сlient.Client;
+import сonst.Const;
+import dao.DatabaseHandler;
+import сonst.Configs;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
