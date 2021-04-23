@@ -1,5 +1,9 @@
+package Controllers;
+
+import Client.Client;
+import Client.User;
+import Handler.DatabaseHandler;
 import animation.Shake;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -9,13 +13,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
-
 import java.io.IOException;
 import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.EventListener;
 import java.util.ResourceBundle;
 
 public class MainController {
@@ -43,7 +44,6 @@ public class MainController {
         singUpBtn.setOnAction(event -> {
 
             DatabaseHandler dbHandler = new DatabaseHandler();
-
 
             String login = loginFld.getText().trim();
             String password = passFld.getText().trim();
@@ -83,7 +83,6 @@ public class MainController {
             if (!login.equals("") && !password.equals("")) {
                 loginUser(login, password);
             }
-
         });
 
 
@@ -105,14 +104,14 @@ public class MainController {
             count++;
         }
         if (count >= 1) {
-            System.out.println("User is in database");
+            System.out.println("Client.User is in database");
             openNewScene("/windows/second.fxml");
         } else {
             Shake loginAnim = new Shake(loginFld);
             Shake passAnim = new Shake(passFld);
             loginAnim.playAnim();
             passAnim.playAnim();
-            System.out.println("User isn't in database");
+            System.out.println("Client.User isn't in database");
         }
     }
 
@@ -134,16 +133,8 @@ public class MainController {
         stage.setTitle("FileKeeper");
         stage.setResizable(false);
         stage.show();
-
-        stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-            @Override
-            public void handle(WindowEvent event) {
-                Client.closeConnection();
-            }
-        });
+        stage.setOnCloseRequest(event -> Client.closeConnection());
     }
-
-
 }
 
 
