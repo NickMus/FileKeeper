@@ -9,13 +9,18 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Array;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
 
 public class SecondController {
 
@@ -88,6 +93,7 @@ public class SecondController {
 
     public void getPath() {
         String path = cmdLine.getText();
+        System.out.println(path);
         path1 = Paths.get(path);
         boolean pathExist = Files.exists(path1);
         System.out.println(pathExist);
@@ -110,7 +116,6 @@ public class SecondController {
         while ((in = bis.read(byteArray)) != -1) {
             bos.write(byteArray, 0, in);
         }
-
         String insert = "INSERT INTO " + Configs.dbName + "." + Const.USER_TABLE_FILES +
                 "(" + files_name + "," + files_data + ")" +
                 "VALUES(?,?)";
@@ -118,6 +123,8 @@ public class SecondController {
         preparedStatement.setString(1, String.valueOf(path1.getFileName())); //file name check!
         preparedStatement.setBytes(2, byteArray);
         preparedStatement.executeUpdate();
+
+
         //bis.close(); проблема тут
         //bos.close();
         System.out.println("вроде получается");
@@ -166,6 +173,7 @@ public class SecondController {
         int in;
         while ((in = is.read(byteArray)) != -1) {
             bos.write(byteArray, 0, in);
+
         }
         System.out.println(targetFile.getTotalSpace());
 
