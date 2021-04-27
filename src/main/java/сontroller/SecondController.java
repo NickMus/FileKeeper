@@ -110,24 +110,27 @@ public class SecondController {
         }
         System.out.println(extention);
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(String.valueOf(path1)));
+        System.out.println("размер файла " + bis.available());
         BufferedOutputStream bos = new BufferedOutputStream(Client.socket.getOutputStream()); //при повторной отправке сокет закрыт
-        byte[] byteArray = new byte[8192]; //долго передает большие файлы. увеличить?
+        byte[] byteArray = new byte[8192];
         int in;
         while ((in = bis.read(byteArray)) != -1) {
             bos.write(byteArray, 0, in);
+            String insert = "INSERT INTO " + Configs.dbName + "." + Const.USER_TABLE_FILES +
+                    "(" + files_name + "," + files_data + ")" +
+                    "VALUES(?,?)";
+            PreparedStatement preparedStatement = DatabaseHandler.getDbConnection().prepareStatement(insert);
+            preparedStatement.setString(1, String.valueOf(path1.getFileName()));
+            preparedStatement.setBytes(2, byteArray);
+            preparedStatement.executeUpdate();
+
         }
-        String insert = "INSERT INTO " + Configs.dbName + "." + Const.USER_TABLE_FILES +
-                "(" + files_name + "," + files_data + ")" +
-                "VALUES(?,?)";
-        PreparedStatement preparedStatement = DatabaseHandler.getDbConnection().prepareStatement(insert);
-        preparedStatement.setString(1, String.valueOf(path1.getFileName())); //file name check!
-        preparedStatement.setBytes(2, byteArray);
-        preparedStatement.executeUpdate();
 
 
-        //bis.close(); проблема тут
-        //bos.close();
-        System.out.println("вроде получается");
+        //
+//        bis.close(); //проблема тут
+//        bos.close();
+       //System.out.println("вроде получается");
 
     }
 
@@ -150,32 +153,42 @@ public class SecondController {
     public void downloadFromDatabase() throws SQLException, ClassNotFoundException, IOException {
         System.out.println("start download");
         InputStream is = null;
+        BufferedInputStream bf = null;
         ResultSet resultSet;
         String fileName = cmdLine.getText();
-        String select = "SELECT " + files_data + " FROM " + Configs.dbName + "." + Const.USER_TABLE_FILES + " WHERE " + files_name + "=?";
-        System.out.println("select from db");
+        String select = "SELECT " + files_data + " FROM " + Configs.dbName + "." + Const.USER_TABLE_FILES +
+                " WHERE " + files_name + "=?";
         PreparedStatement preparedStatement = DatabaseHandler.getDbConnection().prepareStatement(select);
         preparedStatement.setString(1, fileName);
         resultSet = preparedStatement.executeQuery();
         System.out.println("executed");
+
+//        File targetFile = new File(fileName);
+//        System.out.println(fileName);
+        //targetFile.createNewFile();
+
         File targetFile = new File(fileName);
-        System.out.println(fileName);
-        targetFile.createNewFile();
-
         System.out.println(targetFile.exists());
-        System.out.println(targetFile.getTotalSpace());
-        while (resultSet.next()) {
+        System.out.println(targetFile.getUsableSpace());
+        OutputStream os = new FileOutputStream(targetFile);
+        while(resultSet.next()) {
             is = resultSet.getBinaryStream(files_data);
-        }
+            bf = new BufferedInputStream(is);
 
-        OutputStream bos = new FileOutputStream(targetFile);
-        byte[] byteArray = new byte[8192];
-        int in;
-        while ((in = is.read(byteArray)) != -1) {
-            bos.write(byteArray, 0, in);
+            System.out.println(bf.available());
 
+            byte[] byteArray = new byte[8192];
+            int in;
+            while ((in = bf.read(byteArray)) != -1) {
+                os.write(byteArray, 0, in);
+            }
+            System.out.println(bf.available());
         }
-        System.out.println(targetFile.getTotalSpace());
+//        }
+        //os.flush();
+//        is.close();
+//        bos.close();
+        System.out.println("after upload file size" + targetFile.getTotalSpace());
 
 
         System.out.println("ку");
@@ -183,11 +196,11 @@ public class SecondController {
         System.out.println(targetFile.getAbsolutePath());
     }
 
-    public void deleteFromDatabase() {
-        ResultSet resultSet = null;
-        String fileName = cmdLine.getText();
+//    public void deleteFromDatabase() {
+//        ResultSet resultSet = null;
+//        String fileName = cmdLine.getText();
 
         // String drop = "DROP FROM " + dbName + "." + Const.Const.USER_TABLE_FILES
 
     }
-}
+
