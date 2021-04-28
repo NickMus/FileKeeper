@@ -1,11 +1,11 @@
-package Server;
+package server;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import Client.Client;
+import сlient.Client;
 
 public class Server {
     static Socket socket;

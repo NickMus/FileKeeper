@@ -1,7 +1,7 @@
-package Handler;
-import Client.User;
-import Properties.Configs;
-import Const.Const;
+package dao;
+import сlient.User;
+import сonst.Configs;
+import сonst.Const;
 import java.sql.*;
 
 

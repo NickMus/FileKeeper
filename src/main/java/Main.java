@@ -1,5 +1,5 @@
-import Client.Client;
-import Server.Server;
+import сlient.Client;
+import server.Server;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
