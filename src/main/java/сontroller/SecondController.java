@@ -111,7 +111,8 @@ public class SecondController {
         System.out.println(extention);
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(String.valueOf(path1)));
         System.out.println("размер файла " + bis.available());
-        BufferedOutputStream bos = new BufferedOutputStream(Client.socket.getOutputStream()); //при повторной отправке сокет закрыт
+        BufferedOutputStream bos = new BufferedOutputStream(Client.socket.getOutputStream());//при повторной отправке сокет закрыт
+
         byte[] byteArray = new byte[8192];
         int in;
         while ((in = bis.read(byteArray)) != -1) {
@@ -123,6 +124,7 @@ public class SecondController {
             preparedStatement.setString(1, String.valueOf(path1.getFileName()));
             preparedStatement.setBytes(2, byteArray);
             preparedStatement.executeUpdate();
+            System.out.println(bis.available());
 
         }
 
