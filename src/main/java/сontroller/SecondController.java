@@ -1,6 +1,5 @@
 package сontroller;
 
-import сlient.Client;
 import сonst.Const;
 import dao.DatabaseHandler;
 import сonst.Configs;
@@ -14,18 +13,12 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Array;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
+import java.sql.*;
 
 public class SecondController {
 
     static Path path1;
-    static String files_name = "files_name";
+    static String file_name = "files_name";
     static String files_data = "files_data";
 
 
@@ -89,6 +82,14 @@ public class SecondController {
                 throwables.printStackTrace();
             }
         });
+
+        trashBtn.setOnAction(event -> {
+            try {
+                deleteFromDatabase();
+            } catch (SQLException | ClassNotFoundException throwables) {
+                throwables.printStackTrace();
+            }
+        });
     }
 
     public void getPath() {
@@ -101,44 +102,27 @@ public class SecondController {
     }
 
     public void sendToServer() throws IOException, SQLException, ClassNotFoundException {
-
-        System.out.println("я тут");
-        String extention = "";
-        int i = String.valueOf(path1).lastIndexOf('.');
-        if (i > 0) {
-            extention = String.valueOf(path1).substring(i + 1);
-        }
-        System.out.println(extention);
         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(String.valueOf(path1)));
         System.out.println("размер файла " + bis.available());
-        BufferedOutputStream bos = new BufferedOutputStream(Client.socket.getOutputStream());//при повторной отправке сокет закрыт
 
         byte[] byteArray = new byte[8192];
-        int in;
-        while ((in = bis.read(byteArray)) != -1) {
-            bos.write(byteArray, 0, in);
-            String insert = "INSERT INTO " + Configs.dbName + "." + Const.USER_TABLE_FILES +
-                    "(" + files_name + "," + files_data + ")" +
-                    "VALUES(?,?)";
-            PreparedStatement preparedStatement = DatabaseHandler.getDbConnection().prepareStatement(insert);
+        String insert = "INSERT INTO " + Configs.dbName + "." + Const.USER_TABLE_FILE +
+                "(" + file_name + "," + files_data + ")" +
+                "VALUES(?,?)";
+        PreparedStatement preparedStatement = DatabaseHandler.getDbConnection().prepareStatement(insert);
+        while ((bis.read(byteArray)) != -1) {
             preparedStatement.setString(1, String.valueOf(path1.getFileName()));
             preparedStatement.setBytes(2, byteArray);
             preparedStatement.executeUpdate();
             System.out.println(bis.available());
-
+            preparedStatement.clearParameters();
         }
-
-
-        //
-//        bis.close(); //проблема тут
-//        bos.close();
-       //System.out.println("вроде получается");
-
+        bis.close();
     }
 
     public void getUploadedList() throws SQLException, ClassNotFoundException {
         ResultSet resultSet;
-        String select = "SELECT " + files_name + " FROM " + Configs.dbName + ". " + Const.USER_TABLE_FILES;
+        String select = "SELECT " + file_name + " FROM " + Configs.dbName + ". " + Const.USER_TABLE_FILE;
         PreparedStatement preparedStatement = DatabaseHandler.getDbConnection().prepareStatement(select);
         resultSet = preparedStatement.executeQuery();
         dbField.clear();
@@ -147,8 +131,6 @@ public class SecondController {
             System.out.println(name);
             dbField.appendText(name + '\n');
         }
-        //System.out.println(resultSet);
-
     }
 
 
@@ -158,51 +140,37 @@ public class SecondController {
         BufferedInputStream bf = null;
         ResultSet resultSet;
         String fileName = cmdLine.getText();
-        String select = "SELECT " + files_data + " FROM " + Configs.dbName + "." + Const.USER_TABLE_FILES +
-                " WHERE " + files_name + "=?";
+        String select = "SELECT " + files_data + " FROM " + Configs.dbName + "." + Const.USER_TABLE_FILE +
+                " WHERE " + file_name + "=?";
         PreparedStatement preparedStatement = DatabaseHandler.getDbConnection().prepareStatement(select);
         preparedStatement.setString(1, fileName);
         resultSet = preparedStatement.executeQuery();
-        System.out.println("executed");
-
-//        File targetFile = new File(fileName);
-//        System.out.println(fileName);
-        //targetFile.createNewFile();
-
         File targetFile = new File(fileName);
         System.out.println(targetFile.exists());
         System.out.println(targetFile.getUsableSpace());
         OutputStream os = new FileOutputStream(targetFile);
-        while(resultSet.next()) {
+        while (resultSet.next()) {
             is = resultSet.getBinaryStream(files_data);
             bf = new BufferedInputStream(is);
-
-            System.out.println(bf.available());
-
-            byte[] byteArray = new byte[8192];
+            byte[] byteArray = new byte[8192 * 4];
             int in;
             while ((in = bf.read(byteArray)) != -1) {
                 os.write(byteArray, 0, in);
             }
-            System.out.println(bf.available());
+            os.flush();
+            is.close();
+            bf.close();
         }
-//        }
-        //os.flush();
-//        is.close();
-//        bos.close();
-        System.out.println("after upload file size" + targetFile.getTotalSpace());
-
-
-        System.out.println("ку");
-
-        System.out.println(targetFile.getAbsolutePath());
     }
 
-//    public void deleteFromDatabase() {
-//        ResultSet resultSet = null;
-//        String fileName = cmdLine.getText();
-
-        // String drop = "DROP FROM " + dbName + "." + Const.Const.USER_TABLE_FILES
-
+    public void deleteFromDatabase() throws SQLException, ClassNotFoundException {
+        String fileName = cmdLine.getText();
+        String delete = "DELETE FROM " + Configs.dbName + "." + Const.USER_TABLE_FILE + " WHERE " +
+                file_name + "=?";
+        PreparedStatement preparedStatement = DatabaseHandler.getDbConnection().prepareStatement(delete);
+        preparedStatement.setString(1, fileName);
+        preparedStatement.executeUpdate();
+        System.out.println("File deleted " + fileName);
     }
+}
 
