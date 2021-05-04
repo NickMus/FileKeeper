@@ -1,14 +1,14 @@
 package dao;
 
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import org.apache.commons.io.FilenameUtils;
 import сlient.User;
 import сonst.Configs;
 import сonst.Const;
-import org.apache.commons.io.FilenameUtils;
 
 import java.io.*;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.*;
 
 
@@ -22,11 +22,18 @@ public class DatabaseHandler {
         return dbConnection;
     }
 
-    public void singUpUser(User user) {
+    public void singUpUser(User user) throws SQLException, ClassNotFoundException {
+        String create = "CREATE TABLE IF NOT EXISTS " + Configs.dbName + "." + Const.USER_TABLE + " (" +
+                "iduser INT NOT NULL AUTO_INCREMENT, " +
+                "user_login VARCHAR(45) NOT NULL, " +
+                "user_pass VARCHAR(45) NOT NULL, " +
+                "PRIMARY KEY (iduser))";
+        PreparedStatement preparedStatement = DatabaseHandler.getDbConnection().prepareStatement(create);
+        preparedStatement.executeUpdate();
         String insert = "INSERT INTO " + Configs.dbName + "." + Const.USER_TABLE + "(" + Const.USER_LOGIN + "," + Const.USER_PASSWORD + ")" +
                 "VALUES(?,?)";
         try {
-            PreparedStatement preparedStatement = getDbConnection().prepareStatement(insert);
+            preparedStatement = getDbConnection().prepareStatement(insert);
             preparedStatement.setString(1, user.getLogin());
             preparedStatement.setString(2, user.getPassword());
             preparedStatement.executeUpdate();
@@ -112,6 +119,7 @@ public class DatabaseHandler {
         }
         File targetFile = new File(targetFileName);
         targetFile.createNewFile();
+
         System.out.println(targetFile);
         System.out.println(targetFile.exists());
         System.out.println(targetFile.getUsableSpace());

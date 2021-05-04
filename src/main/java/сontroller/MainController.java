@@ -13,6 +13,7 @@ import сlient.service.LoginUser;
 import сlient.service.Registration;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 public class MainController {
 
@@ -33,7 +34,11 @@ public class MainController {
         singUpBtn.setOnAction(event -> {
             String login = loginFld.getText().trim();
             String password = passFld.getText().trim();
-            Registration.registrationNewUser(login, password);
+            try {
+                Registration.registrationNewUser(login, password);
+            } catch (SQLException | ClassNotFoundException throwables) {
+                throwables.printStackTrace();
+            }
         });
 
         enterBtn.setOnAction(event -> {

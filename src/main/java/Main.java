@@ -17,13 +17,13 @@ public class Main extends Application {
         primaryStage.setScene(new Scene(root, 650, 400));
         primaryStage.setResizable(false);
         primaryStage.show();
-        migrateDatabase();
+       // migrateDatabase();
 
     }
 
-    public void migrateDatabase() {
-        Flyway flyway = new Flyway();
-        flyway.setDataSource("jdbc:mysql://localhost:3306/test", "root", "password");
-        flyway.migrate();
-    }
+//    public void migrateDatabase() {
+//        Flyway flyway = new Flyway();
+//        flyway.setDataSource("jdbc:mysql://localhost:3306/test", "root", "password");
+//        flyway.migrate();
+//    }
 }
