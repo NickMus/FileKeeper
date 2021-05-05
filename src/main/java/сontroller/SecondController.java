@@ -1,9 +1,6 @@
 package сontroller;
 
-import сlient.Client;
-import сonst.Const;
 import dao.DatabaseHandler;
-import сonst.Configs;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
@@ -11,24 +8,10 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Array;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
+import java.sql.*;
 
 public class SecondController {
-
-    static Path path1;
-    static String files_name = "files_name";
-    static String files_data = "files_data";
-
-
     @FXML
     private Button downloadBtn;
 
@@ -62,13 +45,12 @@ public class SecondController {
     @FXML
     private ImageView download_btn111;
 
-
     @FXML
     void initialize() {
         uploadBtn.setOnAction(event -> {
-            getPath();
+            String path = cmdLine.getText();
             try {
-                sendToServer();
+                DatabaseHandler.sendToServer(Paths.get(path));
             } catch (IOException | SQLException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
@@ -76,133 +58,29 @@ public class SecondController {
 
         refreshBtn.setOnAction(event -> {
             try {
-                getUploadedList();
+                DatabaseHandler.getUploadedList(dbField);
             } catch (SQLException | ClassNotFoundException throwables) {
                 throwables.printStackTrace();
             }
         });
 
         downloadBtn.setOnAction(event -> {
+            String fileName = cmdLine.getText();
             try {
-                downloadFromDatabase();
+                DatabaseHandler.downloadFromDatabase(fileName);
             } catch (SQLException | IOException | ClassNotFoundException throwables) {
                 throwables.printStackTrace();
             }
         });
-    }
 
-    public void getPath() {
-        String path = cmdLine.getText();
-        System.out.println(path);
-        path1 = Paths.get(path);
-        boolean pathExist = Files.exists(path1);
-        System.out.println(pathExist);
-        System.out.println(path1);
-    }
-
-    public void sendToServer() throws IOException, SQLException, ClassNotFoundException {
-
-        System.out.println("я тут");
-        String extention = "";
-        int i = String.valueOf(path1).lastIndexOf('.');
-        if (i > 0) {
-            extention = String.valueOf(path1).substring(i + 1);
-        }
-        System.out.println(extention);
-        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(String.valueOf(path1)));
-        System.out.println("размер файла " + bis.available());
-        BufferedOutputStream bos = new BufferedOutputStream(Client.socket.getOutputStream());//при повторной отправке сокет закрыт
-
-        byte[] byteArray = new byte[8192];
-        int in;
-        while ((in = bis.read(byteArray)) != -1) {
-            bos.write(byteArray, 0, in);
-            String insert = "INSERT INTO " + Configs.dbName + "." + Const.USER_TABLE_FILES +
-                    "(" + files_name + "," + files_data + ")" +
-                    "VALUES(?,?)";
-            PreparedStatement preparedStatement = DatabaseHandler.getDbConnection().prepareStatement(insert);
-            preparedStatement.setString(1, String.valueOf(path1.getFileName()));
-            preparedStatement.setBytes(2, byteArray);
-            preparedStatement.executeUpdate();
-            System.out.println(bis.available());
-
-        }
-
-
-        //
-//        bis.close(); //проблема тут
-//        bos.close();
-       //System.out.println("вроде получается");
-
-    }
-
-    public void getUploadedList() throws SQLException, ClassNotFoundException {
-        ResultSet resultSet;
-        String select = "SELECT " + files_name + " FROM " + Configs.dbName + ". " + Const.USER_TABLE_FILES;
-        PreparedStatement preparedStatement = DatabaseHandler.getDbConnection().prepareStatement(select);
-        resultSet = preparedStatement.executeQuery();
-        dbField.clear();
-        while (resultSet.next()) {
-            String name = resultSet.getString(1);
-            System.out.println(name);
-            dbField.appendText(name + '\n');
-        }
-        //System.out.println(resultSet);
-
-    }
-
-
-    public void downloadFromDatabase() throws SQLException, ClassNotFoundException, IOException {
-        System.out.println("start download");
-        InputStream is = null;
-        BufferedInputStream bf = null;
-        ResultSet resultSet;
-        String fileName = cmdLine.getText();
-        String select = "SELECT " + files_data + " FROM " + Configs.dbName + "." + Const.USER_TABLE_FILES +
-                " WHERE " + files_name + "=?";
-        PreparedStatement preparedStatement = DatabaseHandler.getDbConnection().prepareStatement(select);
-        preparedStatement.setString(1, fileName);
-        resultSet = preparedStatement.executeQuery();
-        System.out.println("executed");
-
-//        File targetFile = new File(fileName);
-//        System.out.println(fileName);
-        //targetFile.createNewFile();
-
-        File targetFile = new File(fileName);
-        System.out.println(targetFile.exists());
-        System.out.println(targetFile.getUsableSpace());
-        OutputStream os = new FileOutputStream(targetFile);
-        while(resultSet.next()) {
-            is = resultSet.getBinaryStream(files_data);
-            bf = new BufferedInputStream(is);
-
-            System.out.println(bf.available());
-
-            byte[] byteArray = new byte[8192];
-            int in;
-            while ((in = bf.read(byteArray)) != -1) {
-                os.write(byteArray, 0, in);
+        trashBtn.setOnAction(event -> {
+            String fileName = cmdLine.getText();
+            try {
+                DatabaseHandler.deleteFromDatabase(fileName);
+            } catch (SQLException | ClassNotFoundException throwables) {
+                throwables.printStackTrace();
             }
-            System.out.println(bf.available());
-        }
-//        }
-        //os.flush();
-//        is.close();
-//        bos.close();
-        System.out.println("after upload file size" + targetFile.getTotalSpace());
-
-
-        System.out.println("ку");
-
-        System.out.println(targetFile.getAbsolutePath());
+        });
     }
-
-//    public void deleteFromDatabase() {
-//        ResultSet resultSet = null;
-//        String fileName = cmdLine.getText();
-
-        // String drop = "DROP FROM " + dbName + "." + Const.Const.USER_TABLE_FILES
-
-    }
+}
 
