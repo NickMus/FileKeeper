@@ -117,7 +117,8 @@ public class DatabaseHandler {
         while (resultSet.next()) {
             targetFileName = resultSet.getString(file_name);
         }
-        File targetFile = new File(targetFileName);
+        Path targetPath = Paths.get("C:\\Users\\Public\\Pictures");
+        File targetFile = new File(String.valueOf(targetPath), targetFileName);
         targetFile.createNewFile();
 
         System.out.println(targetFile);
